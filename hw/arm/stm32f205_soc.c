@@ -31,6 +31,8 @@
 #include "hw/qdev-properties.h"
 #include "sysemu/sysemu.h"
 
+#include "hw/irq.h"
+
 /* At the moment only Timer 2 to 5 are modelled */
 static const uint32_t timer_addr[STM_NUM_TIMERS] = { 0x40000000, 0x40000400,
     0x40000800, 0x40000C00 };
@@ -80,6 +82,22 @@ static void stm32f205_soc_initfn(Object *obj)
     }
 }
 
+
+qemu_irq stm32f2xx_irq_demo_handler = NULL;
+#define IRQ_DEMO_BASE 0x88990000
+
+static void stm32f2xx_irq_demo_write(void *opaque, hwaddr addr,
+                                  uint64_t val64, unsigned int size)
+{
+    qemu_set_irq(stm32f2xx_irq_demo_handler, 1);
+    return;
+}
+
+static const MemoryRegionOps stm32f2xx_irq_demo_ops = {
+    .write = stm32f2xx_irq_demo_write,
+    .endianness = DEVICE_NATIVE_ENDIAN,
+};
+
 static void stm32f205_soc_realize(DeviceState *dev_soc, Error **errp)
 {
     STM32F205State *s = STM32F205_SOC(dev_soc);
@@ -92,6 +110,8 @@ static void stm32f205_soc_realize(DeviceState *dev_soc, Error **errp)
     MemoryRegion *sram = g_new(MemoryRegion, 1);
     MemoryRegion *flash = g_new(MemoryRegion, 1);
     MemoryRegion *flash_alias = g_new(MemoryRegion, 1);
+
+    MemoryRegion *demo_mem = g_new(MemoryRegion, 1);
 
     memory_region_init_ram(flash, NULL, "STM32F205.flash", FLASH_SIZE,
                            &error_fatal);
@@ -107,6 +127,11 @@ static void stm32f205_soc_realize(DeviceState *dev_soc, Error **errp)
     memory_region_init_ram(sram, NULL, "STM32F205.sram", SRAM_SIZE,
                            &error_fatal);
     memory_region_add_subregion(system_memory, SRAM_BASE_ADDRESS, sram);
+
+
+    memory_region_init_io(demo_mem, NULL, &stm32f2xx_irq_demo_ops, s,
+                          "irq-demo-mmio", 0x1000);
+    memory_region_add_subregion(system_memory, IRQ_DEMO_BASE, demo_mem);
 
     armv7m = DEVICE(&s->armv7m);
     qdev_prop_set_uint32(armv7m, "num-irq", 96);
@@ -130,6 +155,9 @@ static void stm32f205_soc_realize(DeviceState *dev_soc, Error **errp)
     busdev = SYS_BUS_DEVICE(dev);
     sysbus_mmio_map(busdev, 0, 0x40013800);
     sysbus_connect_irq(busdev, 0, qdev_get_gpio_in(armv7m, 71));
+
+
+    stm32f2xx_irq_demo_handler = qdev_get_gpio_in(armv7m, 20); // 拿到nvic的irq 20 的 irq
 
     /* Attach UART (uses USART registers) and USART controllers */
     for (i = 0; i < STM_NUM_USARTS; i++) {

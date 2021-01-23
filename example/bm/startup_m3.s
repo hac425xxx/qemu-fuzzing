@@ -6,6 +6,7 @@
 .global g_pfnVectors
 .global Default_Handler
 .global Reset_Handler
+.global demo_irq_handler
 
 .section .text
 
@@ -16,8 +17,16 @@ Infinite_Loop:
 
 .thumb_func
 Reset_Handler:
+    @ MOV   R0,   #0
+    @ MSR  PRIMASK, R0 
     bl main_func
     b .
+
+.thumb_func
+demo_irq_handler:
+    bl demo_irq_func
+    b .
+
 
 // ISR vecotor data
 .section .isr_vector, "a"
@@ -34,4 +43,28 @@ g_pfnVectors:
     .word 0
     .word 0
 	.word Default_Handler // SVC
-    // and a lot more ...
+    .word 0
+    .word 0
+    .word 0
+    .word 0
+    .word 0
+    .word 0
+    .word 0
+    .word 0
+    .word 0
+    .word 0
+    .word 0
+    .word 0
+    .word 0
+    .word 0
+    .word 0
+    .word 0
+    .word 0
+    .word 0
+    .word 0
+    .word 0
+    .word 0
+    .word 0
+    .word 0
+    .word 0 
+    .word demo_irq_handler // CAN1_RX0 for demo_irq
