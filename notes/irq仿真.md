@@ -2,6 +2,15 @@
 
 上一篇文件介绍了luaqemu的实现，也提到luaqemu并没有对中断相关api进行封装，本节主要基于stm32f205-soc的实现来介绍中断的仿真，并提供一个用于测试qemu设备模拟的裸板程序来测试中断的仿真。
 
+本文相关代码地址
+
+```
+https://github.com/hac425xxx/qemu-fuzzing/commit/609538e1407de884f6c9e4d222431c9032abc25b
+https://github.com/hac425xxx/qemu-fuzzing/commit/7bc0e0aa35363c18fcf5b89dacab73a0a9bef147
+```
+
+
+
 # stm32f205-soc实现
 
 为了仿真某个设备，我们需要通过阅读硬件文档或者通过逆向程序逻辑来获取外设的行为，然后再在qemu中进行模拟，stm32f205的手册可以直接在网上下载
