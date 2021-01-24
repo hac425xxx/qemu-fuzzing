@@ -5,6 +5,14 @@
 ./build.sh
 ```
 
+### 预编译的二进制
+
+```
+binary/startup.bin  
+binary/startup.elf
+```
+
+
 
 ### 运行
 
